@@ -1,0 +1,47 @@
+* Nelpi
+
+Dieses Projekt behandelt die Analyse von Texten mittels NLP-Techniken in Python.
+Aus dem [[https://www.govdata.de][GovData-Portal]] wurden Datensätze mit Bürger-Beschwerden gesammelt,
+deren Inhalte untersucht und die Kernthemen identifiziert werden sollen.
+
+Achtung: Das Projekt befindet sich aktuell in der Konzeptionsphase;
+die tatsächliche NLP-Logik muss noch implementiert werden.
+
+** Datensätze
+| Name                                       | Herausgeber      | Größe | Lizenz         |
+|--------------------------------------------+------------------+-------+----------------|
+| [[https://www.govdata.de/suche/daten/dormagen-mangelmelder][Dormagen: Mängelmelder]]                     | Stadt Dormagen   |    60 | [[https://www.govdata.de/dl-de/zero-2-0][dl-zero-de/2.0]] |
+| [[https://www.govdata.de/suche/daten/open311-burgeranliegen-online-mangelmelder][Open311 Bürgeranliegen online Mängelmelder]] | Stadt Bonn       |   100 | [[https://opendefinition.org/licenses/cc-zero/][cc-zero]]        |
+| [[https://www.govdata.de/suche/daten/daten-des-mangelmelder-munster][Daten des Mängelmelder Münster]]             | Stadt Münster    |  1000 | [[https://www.govdata.de/dl-de/by-2-0][dl-by-de/2.0]]   |
+| [[https://www.govdata.de/suche/daten/ordnungsamt-online][Ordnungsamt-Online]]                         | Berlin Open Data | 54458 | [[https://www.govdata.de/dl-de/by-2-0][dl-by-de/2.0]]   |
+
+** Benutzung
+*** Mit Nix
+Das Nelpi-Projekt wird vollständig vom deklarativen Paketmanager [[https://nixos.org][Nix]] gebaut.
+Dieser erlaubt die Ausführung von Softwarepaketen,
+ohne dass diese auf dem lokalen System installiert werden müssen;
+weiterhin stellt er sicher, dass das Projekt reproduzierbar gebaut werden kann,
+also auch in Zukunft die spezifizierten Software-Versionen verwendet.
+
+Auf einem System, dass bereits über eine Nix-Installation sowie [[https://wiki.nixos.org/wiki/Flakes#Setup][aktivierte Flakes]] verfügt,
+kann Nelpi ganz einfach mit diesem Befehl gestartet werden:
+
+#+begin_src shell
+  nix run github:42loco42/nelpi
+#+end_src
+
+Ein bereits Flake-fähiges Nix kann mit dem
+[[https://determinate.systems/nix-installer][Determinate Nix Installer]] eingerichtet werden,
+sofern Nix auf einem System erst noch installiert werden muss.
+
+*** Mit Docker
+Die in diesem Projekt enthaltene [[file:.github/workflows/main.yaml][CI/CD-Pipeline]] publiziert
+fertige Builds von Nelpi als [[https://github.com/42LoCo42/nelpi/pkgs/container/nelpi][Docker-Image]] auf der GitHub Container Registry.
+Diese bieten eine Alternative für Systeme,
+auf denen Nix nicht installiert werden kann oder soll,
+die allerdings über eine Docker- (oder Podman-) Installation verfügen.
+
+Der Nelpi-Container kann gestartet werden mit:
+#+begin_src shell
+  docker run --rm -it ghcr.io/42loco42/nelpi
+#+end_src

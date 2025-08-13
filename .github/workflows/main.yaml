@@ -1,0 +1,71 @@
+name: main
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build-images:
+    strategy:
+      matrix:
+        include:
+          - name: amd64
+            os: ubuntu-24.04
+          - name: arm64
+            os: ubuntu-24.04-arm
+
+    runs-on: ${{ matrix.os }}
+
+    permissions:
+      packages: write
+
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v19
+
+      - name: Build Image
+        run: |
+          echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' > repo
+          nix build -L .#image
+          podman load < result | grep -oP 'Loaded image: \K.*' > image
+
+      - name: Push to GHCR
+        run: |
+          podman login ghcr.io -u ${{ github.actor }} -p ${{ github.token }}
+          podman push --digestfile digest "$(< image)" "ghcr.io/$(< repo)"
+
+      - name: Save image digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: "digest-${{ matrix.name }}"
+          path: "digest"
+
+  publish-combined-image:
+    needs: build-images
+
+    runs-on: ubuntu-24.04
+
+    permissions:
+      packages: write
+
+    steps:
+      - name: Load image digests
+        uses: actions/download-artifact@v5
+
+      - name: Create multiarch manifest
+        run: |
+          echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' > repo
+          base="ghcr.io/$(< repo)"
+          name="$base:${{ github.ref_name }}"
+
+          podman manifest create "$name"     \
+            "$base@$(< digest-amd64/digest)" \
+            "$base@$(< digest-arm64/digest)"
+
+          podman login ghcr.io -u ${{ github.actor }} -p ${{ github.token }}
+          podman push "$name"
+          podman push "$name" "$base:latest"
