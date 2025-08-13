@@ -58,7 +58,7 @@
 
         devShells.default = pkgs.mkShell {
           inputsFrom = [ packages.default ];
-          packages = with pkgs;  with py; [
+          packages = with pkgs; with py; [
             ipython
           ];
         };
