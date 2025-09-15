@@ -27,6 +27,13 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v19
 
+      - name: Set up Attic cache
+        uses: ryanccn/attic-action@v0.4.0
+        with:
+          endpoint: https://attic.eleonora.gay
+          cache: nelpi
+          token: ${{ secrets.ATTIC_TOKEN }}
+
       - name: Build Image
         run: |
           echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' > repo
