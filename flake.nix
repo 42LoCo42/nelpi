@@ -45,10 +45,41 @@
                 sourcePreference = "wheel";
               })
 
-              (_: prev: {
+              (final: prev: {
                 ${name} = prev.${name}.overrideAttrs {
                   preBuild = "python extract.py";
                 };
+
+                # https://github.com/TyberiusPrime/uv2nix_hammer_overrides/blob/68d84fd911afa2383a1c1cb28712ca1d090a8c32/flake.nix#L87
+                cython_0 = prev.cython.overrideAttrs (old: rec {
+                  version = "0.29.36";
+
+                  src = pkgs.fetchPypi {
+                    pname = "Cython";
+                    inherit version;
+                    hash = "sha256-QcDP0tdU44PJ7rle/8mqSrhH0Ml0cHfd18Dctow7wB8=";
+                  };
+                });
+
+                # thinc must be built from source on aarch64, which is broken by default:
+                # various cython files are missing and cython itself must be a 0.*, not 3.*
+                thinc =
+                  if !pkgs.hostPlatform.isAarch64 then prev.thinc else
+                  (prev.thinc.override {
+                    sourcePreference = "sdist";
+                  }).overrideAttrs (old: {
+                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
+                      (final.resolveBuildSystem {
+                        blis = [ ];
+                        cymem = [ ];
+                        cython_0 = [ ];
+                        murmurhash = [ ];
+                        numpy = [ ];
+                        preshed = [ ];
+                        setuptools = [ ];
+                      })
+                    ];
+                  });
               })
             ]);
       in
